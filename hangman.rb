@@ -2,6 +2,14 @@
 
 # The popular game where you have to guess a word
 class Hangman
+  attr_reader :chosen_word, :player_word, :guess_list
+
+  def initialize
+    @chosen_word = []
+    @player_word = []
+    @guess_list = []
+  end
+
   def play_game
     chosen_word = random_word
     player_word = %w[_] * chosen_word.length
@@ -15,6 +23,20 @@ class Hangman
       puts "You're left with #{number_of_rounds} guesses"
       print 'Give your guess among the alphabets: '
       player_guess = gets.chomp.downcase
+      if player_guess == 'resume'
+        data = load
+        player_word = data.player_word
+        chosen_word = data.chosen_word
+        guess_list = data.guess_list
+        number_of_rounds = 3 + chosen_word.length - guess_list.length
+      end
+      if player_guess == 'pause'
+        @player_word = player_word
+        @guess_list = guess_list
+        @chosen_word = chosen_word
+        save
+        return
+      end
       next if player_guess.length > 1
 
       if guess_list.include?(player_guess)
@@ -31,6 +53,10 @@ class Hangman
     end
 
     who_won(player_word, chosen_word)
+  end
+
+  def to_s
+    "#{@guess_list} | #{@chosen_word} | #{@player_word}"
   end
 
   private
@@ -55,5 +81,18 @@ class Hangman
     end
     print 'The word was: '
     puts chosen_word.join
+  end
+
+  def save
+    data = Marshal.dump(self)
+    Dir.mkdir('output') unless Dir.exist?('output')
+    File.open('output/pause.yaml', 'w') do |file|
+      file.puts(data)
+    end
+  end
+
+  def load
+    file = File.open('output/pause.yaml')
+    Marshal.load(file)
   end
 end
