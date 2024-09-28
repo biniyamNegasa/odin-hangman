@@ -16,25 +16,45 @@ class Hangman
     guess_list = Set[]
 
     number_of_rounds = 3 + chosen_word.length
+    loop do
+      puts 'Do you want to? (1) resume (2) create new game'
+      choice = gets.chomp
+      next unless %w[1 2].include?(choice)
+
+      if choice == '1'
+        data = load
+        break unless data
+
+        player_word = data.player_word
+        chosen_word = data.chosen_word
+        guess_list = data.guess_list
+        number_of_rounds = 3 + chosen_word.length - guess_list.length
+      end
+      break
+    end
+
+    puts
+    puts 'Welcome to Hangman game, just type the letter to guess the word.'
+    puts 'You can pause the game by typing: pause'
+    puts
     while number_of_rounds.positive?
+
+      @player_word = player_word
+      @guess_list = guess_list
+      @chosen_word = chosen_word
+
+      puts
+      puts "Your guess: #{guess_list.join(', ')}"
       p player_word
       break if are_equal?(player_word, chosen_word)
 
       puts "You're left with #{number_of_rounds} guesses"
       print 'Give your guess among the alphabets: '
       player_guess = gets.chomp.downcase
-      if player_guess == 'resume'
-        data = load
-        player_word = data.player_word
-        chosen_word = data.chosen_word
-        guess_list = data.guess_list
-        number_of_rounds = 3 + chosen_word.length - guess_list.length
-      end
+
       if player_guess == 'pause'
-        @player_word = player_word
-        @guess_list = guess_list
-        @chosen_word = chosen_word
         save
+        puts 'Successfully paused the game!'
         return
       end
       next if player_guess.length > 1
@@ -47,11 +67,10 @@ class Hangman
       chosen_word.each_with_index do |char, ind|
         player_word[ind] = char if char == player_guess
       end
-      print "Your guess: #{guess_list.join(', ')}"
-      puts
       number_of_rounds -= 1
     end
 
+    File.delete('output/pause.mx') if File.exist?('output/pause.mx')
     who_won(player_word, chosen_word)
   end
 
@@ -86,13 +105,15 @@ class Hangman
   def save
     data = Marshal.dump(self)
     Dir.mkdir('output') unless Dir.exist?('output')
-    File.open('output/pause.yaml', 'w') do |file|
+    File.open('output/pause.mx', 'w') do |file|
       file.puts(data)
     end
   end
 
   def load
-    file = File.open('output/pause.yaml')
+    return unless File.exist?('output/pause.mx')
+
+    file = File.open('output/pause.mx')
     Marshal.load(file)
   end
 end
