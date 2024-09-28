@@ -6,7 +6,7 @@ The popular word game
 
 ### Clone this repo and go into folder
 ```bash
-git clone https://github.com/biniyamNegasa/odin-hangman.git
+git clone https://github.com/biniyamNegasa/odin-hangman.git && cd odin-hangman
 ```
 
 ### Run the main file
